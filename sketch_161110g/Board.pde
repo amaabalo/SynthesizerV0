@@ -1,56 +1,61 @@
 class Board
 {
-  Button[][] buttonArray;
-  float xCorner;
-  float yCorner;
-  float innerSize;
-  float outerSize;
-  float paddingX;
-  float paddingY;
-  int bWidth;
-  int bHeight;
-  color off;
-  color on;
-  color background;
-  color playing;
-  int current;
-  int prev;
-  int playTime;
-  long timeOff;
+  Button[][] buttonArray; // two-dimensional array of Button objects
+  PVector corner; // coordinates of the center of the top-left Button object
+  float innerSize;  // size of the inner square of a button
+  float outerSize;  // size of the outer square of a button
+  float paddingX;  // distance between left edge of board and left edge of window;
+  float paddingY;  // distance between top edge of board and top edge of window;
+  int bWidth;     // number of button  in the x-direction
+  int bHeight;    // number of buttons in the y-direction
+  color off;      // color of the button when it is off;
+  color on;        // color of the button when it is on;
+  color background; // color of the board's background
+  color playing;     // color of column whose beats are currently playing
+  int current;    // index of the the column whose beats are currently playing
+  int prev;    // index of the column whose beats were previously played
+  int playTime;  // number of milliseconds for which each column of beats plays
+  long timeOff;  // time at which the next column of beats must be played
+  SoundFile[] files;  // array of different sound files for board
+  String[] soundNames;
   
-  Board(float xC, float yC, int bW, int bH, float iS, float oS, color bOff, color bOn, color bG, color p)
+  Board(float xC, float yC, int bW, int bH, float iS, float oS, color bOff, color bOn, color bG, color p, SoundFile[] f, int pT, String[] sN)
   {
-    xCorner = xC;
-    yCorner = yC;
+    if (bW <= 0 || bH <= 0)
+    {
+      throw new IllegalArgumentException("Board dimensions must be greater than zero.");
+    }
+    corner = new PVector(xC, yC);
     bWidth = bW;
     bHeight = bH;
     innerSize = iS;
     outerSize = oS;
-    paddingX = xCorner - (outerSize / 2);
-    paddingY = yCorner - (outerSize / 2);
-    float x;
-    float y;
+    paddingX = corner.x - (outerSize / 2);
+    paddingY = corner.y - (outerSize / 2);
     buttonArray = new Button[bWidth][bHeight];
     off = bOff;
     on = bOn;
     background = bG;
-    current = bWidth - 1;
-    prev = -1;
+    current = bWidth - 1;      
     playing = p;
+    files = f;
+    playTime = pT;
+    soundNames = sN;
+    timeOff = 0;
+    float x;    // x-coordinate of Button object
+    float y;    // y-coordinate of Button object
     for(int i = 0; i < bWidth; i++)
     {
-      x = xCorner + i * outerSize;
+      x = corner.x + i * outerSize;
       for(int j = 0; j < bHeight; j++)
       {
-        y = yCorner + j * outerSize;
-        buttonArray[i][j] = new Button(x, y, innerSize, outerSize, off, on, background, playing);
+        y = corner.y + j * outerSize;
+        buttonArray[i][j] = new Button(x, y, innerSize, outerSize, off, on, background, playing, files[j]);
       }
     }
-    
-    playTime = 300;
-    timeOff = 0;
   }
   
+  /* Display the sequencer, playing the next column of beats every playTime seconds */
   void display()
   {
     if (millis() >= timeOff)
@@ -67,44 +72,43 @@ class Board
     }
   } 
   
+  /* Determine which Button object a click falls within and turn on 'actual' button if it was clicked */
   void whichButton(float X, float Y)
   {
     float xCoordinate = X - paddingX;
     float yCoordinate = Y - paddingY;
     int i = int(xCoordinate / outerSize);
     int j = int(yCoordinate / outerSize);
+    if (i < 0 || i >= bWidth || j < 0 || j >= bHeight)
+    {
+      // clicking outside of the board has no effect
+      return;
+    }
     Button B = buttonArray[i][j];
-    //println(withinBoundaries(B, xCoordinate, yCoordinate));
     if(withinBoundaries(B, X, Y))
     {
-      //println("yessss");
       buttonArray[i][j].state = (buttonArray[i][j].state + 1) % 2;
     }      
   }
   
+  /* Check if 'actual' button was clicked */
   private boolean withinBoundaries(Button b, float xCoord, float yCoord)
   {
-    float xLower = b.x - innerSize/2;
+    float xLower = b.position.x - innerSize/2;
     float xUpper = xLower + innerSize;
-    float yLower = b.y - innerSize/2;
+    float yLower = b.position.y - innerSize/2;
     float yUpper = yLower + innerSize;
-    //println("yes");
-    println("Button coordinates: " + b.x + " " + b.y);
-    println("Mouse coordinates: " + xCoord + " " + yCoord);
-    println("Lower and upper boundaries: " + xLower + " " + xUpper + " " + yLower + " " + yUpper + " ");
     if ((xCoord >= xLower) && (xCoord < xUpper) && (yCoord >= yLower) && (yCoord < yUpper))
     {
-      println("Clicked within button.");
       return true;  
     }
     else
     {
-      println("Did not click within button.");
       return false;
-      
     }
   }
   
+  /* Plays the next column of beats */
   void next()
   {
     prev = current;
@@ -113,7 +117,21 @@ class Board
     {
       buttonArray[prev][i].playing = 0;
       buttonArray[current][i].playing = 1;
+      if (buttonArray[current][i].state==1)
+      {
+        buttonArray[current][i].file.play();
+      }
     } 
-  }
+  }  
   
+  void showLabels()
+  {
+    fill(0, 102, 153);
+    textSize(25);
+    textAlign(RIGHT);
+    for (int i = 0; i < soundNames.length; i++)
+    {     
+      text(soundNames[i], corner.x - outerSize, corner.y + outerSize * (i + 0.125));
+    }
+  }
 }
