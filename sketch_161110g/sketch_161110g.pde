@@ -17,22 +17,16 @@ color on;          // color of the button when it is on
 color background;  // color of the board's background
 color playing;     // color of the column whose beats are currently playing
 int playTime;      // number of milliseconds for which each column of beats plays
-int showLabels = 0;    // shows names of sounds on each row if 1, does not show names otherwise
 // list of names of sound files for the board
 String [] fileNames = {"trash_clap.mp3", "trash_cowbell.mp3", "trash_cymbal.mp3", "trash_hhclosed.mp3", "trash_hhopen.mp3", "trash_kick.mp3", "trash_rimshot.mp3", "trash_snare.mp3", "trash_tom.mp3"};
+// list of names of sounds
 String [] soundNames = {"Clap", "Cowbell", "Cymbal", "Closed Hi Hat", "Open Hi Hat", "Kick", "Rimshot", "Snare", "Tom"};
 SoundFile[] sounds;  // array of sound files
 
 void setup()
 {
-  if(showLabels==1)
-  {
-    size(775, 630);
-  }
-  else
-  {
-    size(560, 630);
-  }
+  size(775, 630);
+  
   background(230);
   topLeft = new PVector(250, 35);
   boardWidth = 8;
@@ -43,17 +37,15 @@ void setup()
   on = color(0,250,0);
   background = color(50);
   playing = color(200, 0, 0);  
-  playTime = 200;
+  playTime = 250;
   sounds = new SoundFile[fileNames.length];
   for (int i = 0; i < fileNames.length; i++)
   {
     sounds[i] = new SoundFile(this, fileNames[i]); 
   }
   b = new Board(topLeft.x, topLeft.y, boardWidth, boardHeight, innerSize, outerSize, off, on, background, playing, sounds, playTime, soundNames);
-  if (showLabels == 1)
-  {
-    b.showLabels();
-  }
+  b.showLabels();
+  println ("Click on a button to turn it on (green) or off (white). The beat for that button will be played when it lies within the red strip.");
 }
 
 void draw()
