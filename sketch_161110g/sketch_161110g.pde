@@ -16,7 +16,8 @@ color notPlaying;
 PVector topLeft;
 Button c;
 void setup()
-{ 
+{
+  f = new SoundFile(this, "trash_clap.mp3");
   size(2240, 840);
   //off = color(137, 207, 240);
   off = color(255);
@@ -38,5 +39,6 @@ void draw()
 
 void mouseReleased()
 {
+  f.play();
   b.whichButton(mouseX, mouseY);
 }
